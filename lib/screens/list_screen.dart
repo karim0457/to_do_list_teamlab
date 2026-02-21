@@ -20,7 +20,7 @@ class ListScreenState extends State<ListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('TODOリスト')),
+      appBar: AppBar(title: const Text('TODO APP')),
       body: TodoList(
         key: _todoListKey,
         todoService: widget.todoService,

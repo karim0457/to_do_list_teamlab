@@ -37,6 +37,15 @@ class TodoListState extends State<TodoList> {
     setState(() => _todos.add(newTodo));
     await widget.todoService.saveTodos(_todos);
   }
+  Future<void> deleteTodo(Todo todo) async {
+  // ① remove from list
+  setState(() {
+    _todos.removeWhere((t) => t.id == todo.id);
+  });
+
+  // ② save updated list to local storage
+  await widget.todoService.saveTodos(_todos);
+}
 
   // チェック（完了）ボタンから呼ばれる：削除して保存まで行おう
   Future<void> _toggleTodo(Todo todo) async {
@@ -66,11 +75,23 @@ class TodoListState extends State<TodoList> {
         final todo = _todos[index];
         return Padding(
           padding: const EdgeInsets.all(8.0),
-          child: TodoCard(
-            todo: todo,
-            // チェックボタンを押したら _toggleTodo が呼ばれるように渡そう
-            onToggle: () => _toggleTodo(todo),
-          ),
+          child: Dismissible(
+  key: Key(todo.id),
+  direction: DismissDirection.endToStart,
+  onDismissed: (direction) {
+    deleteTodo(todo);
+  },
+  background: Container(
+    alignment: Alignment.centerRight,
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    color: Colors.red,
+    child: const Icon(Icons.delete, color: Colors.white),
+  ),
+  child: TodoCard(
+    todo: todo,
+    onToggle: () => _toggleTodo(todo),
+  ),
+),
         );
       },
     );
