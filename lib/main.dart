@@ -1,43 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() => runApp(const MyApp());
+import 'screens/list_screen.dart';
+import 'services/todo_service.dart';
+
+void main() async {
+  // Flutter のプラグイン初期化。非同期処理を行う場合は必須
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // TodoCard内で DateFormat(..., 'ja') を使うので、起動時に一度だけ初期化しよう
+  await initializeDateFormatting('ja'); // 英語表記なら "en" など
+
+  // ① 端末保存（SharedPreferences）を使えるようにしよう
+  final prefs = await SharedPreferences.getInstance();
+
+  // ② prefs を渡して TodoService を作り、保存/読み込みの窓口を1つにまとめよう
+  final todoService = TodoService(prefs);
+
+  // ③ todoService をアプリ全体へ渡して、どの画面からでも使えるようにしよう
+  runApp(MyApp(todoService: todoService));
+}
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.todoService});
+
+  // アプリ全体で共有する TodoService
+  final TodoService todoService;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Todo App',
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Todo App')),
-        body: Center(
-          child: SizedBox(
-            height: 150,
-            child: Card(
-              child: Padding(
-                padding:  const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.radio_button_unchecked),
-                    SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children:const[
-                        Text('Sample Task'),
-                        SizedBox(height: 4),
-                        Text('sample description'),
-                        SizedBox(height: 4),
-                        Text('2024-06-30'),
-                      ]
-                      ),
-                  ],
-                ),
-              ),
-            )
-          )
-        ),
-      ),
+      debugShowCheckedModeBanner: false,
+      // ListScreen にtodoServiceを引数としてわたす
+      home: ListScreen(todoService: todoService),
     );
   }
 }
